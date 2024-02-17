@@ -1,0 +1,12 @@
+{
+  "name": "movie-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"cd frontend && npx expo start\" \"cd backend && npm run dev\""
+  },
+  "author": "",
+  "license": "ISC"
+}
