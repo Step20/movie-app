@@ -1,12 +1,17 @@
 import { gql } from "@apollo/client";
 
 const GET_USER = gql`
-  query GetUser($data: GetUserInput!) {
-    getUser(data: $data) {
+  query GetUser($userId: String!) {
+    getUser(userId: $userId) {
       _id
       name
       email
-      location
+      userLocation
+      userBio
+      profilePictureUrl
+      dateCreated
+      bookmarkList
+      userType
     }
   }
 `;

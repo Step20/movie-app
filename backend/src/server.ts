@@ -8,6 +8,7 @@ import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
 import resolvers from "./resolvers";
 import router from "./routes";
+
 async function main() {
   const app = express();
   app.use(

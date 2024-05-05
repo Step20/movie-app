@@ -17,13 +17,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Video } from "expo-av";
-import useGetUserId from "@/hooks/useGetUserId";
+import useGetUser from "@/hooks/useGetUser";
 
 export default function HomeScreen() {
-  const userId = useGetUserId();
+  const userId = useGetUser();
   return (
     <View>
-      <Text>Movie & {userId}</Text>
+      <Text>Movie & {userId ? userId.name : "No Account"}</Text>
     </View>
   );
 }

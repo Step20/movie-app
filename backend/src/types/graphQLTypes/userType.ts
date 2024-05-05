@@ -16,4 +16,19 @@ export class User {
 
   @Field()
   userLocation: string;
+
+  @Field()
+  userBio: string;
+
+  @Field()
+  profilePictureUrl: string;
+
+  @Field()
+  dateCreated: string;
+
+  @Field(() => [String])
+  bookmarkList: string[];
+
+  @Field()
+  userType: string;
 }

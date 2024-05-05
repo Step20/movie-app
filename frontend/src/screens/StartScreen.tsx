@@ -17,6 +17,8 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
+  Dimensions,
 } from "react-native";
 import {
   BottomSheetModal,
@@ -32,39 +34,54 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useMutation } from "@apollo/client";
 import LOGIN_MUTATION from "../utils/apollo/mutations/LOGIN_MUTATION";
 import { useDispatch } from "react-redux";
-import { loginSuccess, logoutSuccess } from "../features/auth/authSlice";
+import {
+  loginSuccess,
+  logoutSuccess,
+  registerSuccess,
+} from "../features/auth/authSlice";
+import { toggleLoading } from "../features/loading/loadingSlice";
 import validateLogin from "../utils/validation/login";
 import Credentials from "../../../types/Credentials";
+import RegisterForm from "../components/regForm/registerForm";
+import ToggleLoading from "../components/toggleLoading";
+import { RootState } from "@/app/store";
+import { useSelector } from "react-redux";
 
 type ContextValues = {
   setCredentials: React.Dispatch<Credentials>;
-  setSpinner: React.Dispatch<boolean>;
 };
+
+const ios = Platform.OS == "ios";
+const bottomMargin = ios ? "mb-5" : "";
+var { width, height } = Dimensions.get("window");
 
 export default function StartScreen() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const regBottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-  const snapPoints = useMemo(() => ["25%", "76%"], []);
-  const regSnapPoints = useMemo(() => ["25%", "87%"], []);
-
+  const snapPoints = ios
+    ? useMemo(() => ["25%", "66%"], [])
+    : useMemo(() => ["25%", "74%"], []);
+  const regSnapPoints = ios
+    ? useMemo(() => ["25%", "72%"], [])
+    : useMemo(() => ["25%", "86%"], []);
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
     setEmail("");
     setPassword("");
   }, []);
   const regHandlePresentModalPress = useCallback(() => {
+    setLock(true);
     regBottomSheetModalRef.current?.present();
   }, []);
-
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-  }, []);
+  const handleSheetChanges = useCallback((index: number) => {}, []);
 
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
-  const [lock, setLock] = useState(true);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [userLocation, setUserLocation] = useState("");
+  const [name, setName] = useState("");
+  const [lock, setLock] = useState(true);
   type ErrorsType = { field: string; statement: string }[];
   const [errors, setErrors]: [ErrorsType, React.Dispatch<ErrorsType>] =
     useState<ErrorsType>([]);
@@ -76,7 +93,7 @@ export default function StartScreen() {
       const credentials = data.login;
       const { success, formError } = data.login;
       if (success) {
-        navigation.push("Home");
+        navigation.push("TabScreen");
         setEmail("");
         setPassword("");
       }
@@ -113,18 +130,13 @@ export default function StartScreen() {
   };
 
   const handleWatch = async () => {
-    navigation.push("Home");
+    navigation.push("TabScreen");
     dispatch(logoutSuccess());
   };
 
   if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
+    return <ToggleLoading />;
   }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
@@ -134,27 +146,30 @@ export default function StartScreen() {
             resizeMode="cover"
             style={styles.image}
           >
-            <View style={styles.content}>
+            <View style={styles.content} className={bottomMargin}>
               <Text style={styles.logo}> LOGO</Text>
               <Text style={styles.text}>
                 It is a long established fact that an read able will be
                 distracted.
               </Text>
 
-              <Text onPress={handleWatch} style={styles.watchBtn}>
-                Watch Free Now
-              </Text>
+              <TouchableOpacity onPress={handleWatch} style={styles.watchBtn}>
+                <Text style={styles.btnText}>Watch Free Now</Text>
+              </TouchableOpacity>
 
-              <Text onPress={handlePresentModalPress} style={styles.signUpBtn}>
-                Sign In
-              </Text>
+              <TouchableOpacity
+                onPress={handlePresentModalPress}
+                style={styles.signUpBtn}
+              >
+                <Text style={styles.btnText}>Sign In</Text>
+              </TouchableOpacity>
               <Text style={styles.acc}>
                 Don't have an account?{" "}
                 <Text style={styles.link} onPress={regHandlePresentModalPress}>
                   Register
                 </Text>
               </Text>
-              <Text style={styles.under}>
+              <Text style={styles.under} className={bottomMargin}>
                 By creating an account or signing in, you agree to our
                 <Text style={styles.bold}> Terms of Service</Text> and
                 <Text style={styles.bold}> Privacy Policy</Text>
@@ -187,11 +202,6 @@ export default function StartScreen() {
                   value={email}
                   onChangeText={(text) => setEmail(text)}
                 />
-                {/* <TextInput
-                  style={styles.inputPas}
-                  placeholderTextColor="lightgrey"
-                  placeholder="Password"
-                /> */}
                 <View style={styles.inputPas}>
                   <TextInput
                     style={styles.inputText}
@@ -204,7 +214,7 @@ export default function StartScreen() {
                   {lock ? (
                     <EyeSlashIcon
                       onPress={() => setLock(false)}
-                      size="28"
+                      size="27"
                       strokeWidth={2}
                       color="white"
                       style={{ marginRight: 12 }}
@@ -212,36 +222,38 @@ export default function StartScreen() {
                   ) : (
                     <EyeIcon
                       onPress={() => setLock(true)}
-                      size="28"
+                      size="27"
                       strokeWidth={2}
                       color="white"
                       style={{ marginRight: 12 }}
                     />
                   )}
                 </View>
-                {error && <Text style={styles.error}>{error.message}</Text>}
-                <Text
+                <Text style={styles.error}>{errors}</Text>
+                <TouchableOpacity
                   style={styles.signInBtn}
                   onPress={handleSubmit}
                   submitName="Login"
                   errors={errors}
                 >
-                  Sign In
-                </Text>
+                  <Text style={styles.btnText}>Sign In </Text>
+                </TouchableOpacity>
                 <Text
                   style={{
                     color: "white",
                     textAlign: "center",
-                    fontSize: 20,
-                    marginTop: -15,
+                    fontSize: 14,
+                    marginTop: -16,
                   }}
                 >
                   or
                 </Text>
-                <Text style={styles.googleBtn}>
-                  <Image source={google} style={styles.googleIcon} /> Continue
-                  with Google
-                </Text>
+                <TouchableOpacity style={styles.googleBtn}>
+                  <Text style={styles.btnGoogleText}>
+                    {/* <Image source={google} style={styles.googleIcon} /> */}
+                    <Text>Continue with Google</Text>
+                  </Text>
+                </TouchableOpacity>
                 <Text style={[styles.acc, { marginTop: -0 }]}>
                   Don't have an account?{" "}
                   <Text
@@ -270,60 +282,7 @@ export default function StartScreen() {
                 />
               )}
             >
-              <View style={styles.contentContainer}>
-                <Text style={styles.modalTitle}>Create account!</Text>
-                <Text style={styles.modalText}>
-                  Enter your credentials to continue
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholderTextColor="lightgrey"
-                  placeholder="Name"
-                />
-                {/* <TextInput
-                  style={styles.inputPas}
-                  placeholderTextColor="lightgrey"
-                  placeholder="Password"
-                /> */}
-                <TextInput
-                  style={styles.inputPas}
-                  placeholderTextColor="lightgrey"
-                  placeholder="Email"
-                />
-                <TextInput
-                  style={styles.inputPas}
-                  placeholderTextColor="lightgrey"
-                  placeholder="Location"
-                />
-                <View style={styles.inputPas}>
-                  <TextInput
-                    style={styles.inputText}
-                    placeholderTextColor="lightgrey"
-                    placeholder="Password"
-                  />
-                  <EyeIcon
-                    size="28"
-                    strokeWidth={2}
-                    color="white"
-                    style={{ marginRight: 12 }}
-                  />
-                </View>
-                <Text style={styles.signInBtn}>Sign In</Text>
-                <Text
-                  style={{
-                    color: "white",
-                    textAlign: "center",
-                    fontSize: 20,
-                    marginTop: -15,
-                  }}
-                >
-                  or
-                </Text>
-                <Text style={styles.googleBtn}>
-                  <Image source={google} style={styles.googleIcon} /> Continue
-                  with Google
-                </Text>
-              </View>
+              <RegisterForm />
             </BottomSheetModal>
           </ImageBackground>
         </View>
@@ -340,14 +299,16 @@ const styles = StyleSheet.create({
   },
   error: {
     color: "red",
-    marginTop: 10,
-    marginBottom: -20,
+    marginTop: -6,
+    marginBottom: 10,
     textAlign: "center",
+    fontSize: 12,
   },
   input: {
-    paddingVertical: 13.5,
-    margin: 25,
-    marginTop: 25,
+    height: 49,
+    marginTop: 18,
+    marginVertical: 15,
+    marginHorizontal: 25,
     borderWidth: 1,
     padding: 10,
     fontSize: 16,
@@ -358,14 +319,15 @@ const styles = StyleSheet.create({
     color: "white",
   },
   inputText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
     color: "white",
   },
   inputPas: {
     justifyContent: "space-between",
-    paddingVertical: 13.5,
-    margin: 25,
+    height: 49,
+    marginVertical: 15,
+    marginHorizontal: 25,
     marginTop: 0,
     borderWidth: 1,
     padding: 10,
@@ -387,27 +349,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   googleIcon: {
-    height: 35,
-    width: 35,
+    height: 30,
+    width: 30,
   },
-  googleBtn: {
-    fontSize: 20,
+  btnGoogleText: {
+    fontSize: 17,
     fontWeight: "500",
     color: "black",
     textAlign: "center",
+  },
+  viewGoogle: {
+    textAlign: "center",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  googleBtn: {
     paddingTop: 0,
-    paddingBottom: 15,
+    height: 50,
     margin: 25,
-    marginTop: 15,
+    marginTop: 10,
     borderRadius: 25,
     backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
   },
   modalTitle: {
     color: "white",
     fontWeight: "bold",
     fontSize: 22,
     textAlign: "center",
-    marginTop: 15,
+    marginTop: 20,
   },
   modalText: {
     color: "white",
@@ -439,7 +410,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   under: {
-    marginTop: 32,
+    marginTop: 40,
     color: "white",
     fontWeight: "400",
     textAlign: "center",
@@ -450,10 +421,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   text: {
-    width: 300,
+    width: 320,
     marginTop: 18,
     color: "white",
-    opacity: 0.3,
+    opacity: 0.4,
     fontSize: 19,
     textAlign: "center",
     lineHeight: 30,
@@ -472,39 +443,37 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
   },
-  signUpBtn: {
-    fontSize: 20,
-    width: "110%",
+  btnText: {
+    fontSize: 17,
     fontWeight: "500",
     color: "white",
     textAlign: "center",
+  },
+  signUpBtn: {
+    width: "110%",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 11,
-    borderRadius: 25,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#2C2C2C",
   },
   watchBtn: {
+    alignItems: "center",
+    justifyContent: "center",
     width: "110%",
-    fontSize: 20,
-    fontWeight: "500",
-    color: "white",
-    textAlign: "center",
-    paddingVertical: 11,
+    height: 60,
     margin: 9,
     marginTop: 25,
-    borderRadius: 25,
+    borderRadius: 30,
     backgroundColor: "#197AEC",
   },
   signInBtn: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "white",
-    textAlign: "center",
-    paddingVertical: 13.5,
+    height: 50,
     margin: 25,
     marginTop: 1,
     borderRadius: 25,
     backgroundColor: "#197AEC",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

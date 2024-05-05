@@ -9,6 +9,7 @@ function createApolloClient() {
     uri,
     cache: new InMemoryCache(),
   });
+  console.log(uri);
 }
 
 export default createApolloClient;
