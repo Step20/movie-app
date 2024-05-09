@@ -4,6 +4,7 @@ import React, {
   useRef,
   useState,
   useEffect,
+  forwardRef,
 } from "react";
 import {
   View,
@@ -17,6 +18,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
   Dimensions,
 } from "react-native";
 import google from "../../../assets/images/google_icon.png";
@@ -34,14 +36,25 @@ import Loading from "../loading";
 import ToggleLoading from "@/components/toggleLoading";
 import { RootState } from "@/app/store";
 import { useSelector } from "react-redux";
+import {
+  BottomSheetModal,
+  BottomSheetModalProvider,
+} from "@gorhom/bottom-sheet";
+import { regOpenModal, sigOpenModal } from "@/features/modal/modalSlice";
+import { Portal } from "react-native-portalize";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 type ContextValues = {
   setCredentials: React.Dispatch<Credentials>;
 };
 
-const { width, height } = Dimensions.get("window");
+const ios = Platform.OS == "ios";
+const bottomMargin = ios ? "mb-5" : "";
+var { width, height } = Dimensions.get("window");
 
-export default function RegisterForm() {
+export type Ref = BottomSheetModal;
+
+const RegisterForm = forwardRef<Ref>((props, ref) => {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,6 +72,10 @@ export default function RegisterForm() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [register, { data, loading, error }] = useMutation(REGISTER_MUTATION);
 
+  const regSnapPoints = ios
+    ? useMemo(() => ["25%", "72%"], [])
+    : useMemo(() => ["25%", "92%"], []);
+
   useEffect(() => {
     if (data) {
       const credentials = data.register;
@@ -66,7 +83,7 @@ export default function RegisterForm() {
       if (credentials) dispatch(registerSuccess(credentials));
 
       if (success) {
-        navigation.navigate("TabScreen");
+        navigation.navigate("Home");
       }
       if (formError) {
         setErrors([formError]);
@@ -99,99 +116,126 @@ export default function RegisterForm() {
     return <ToggleLoading />;
   }
 
-  return (
-    <View style={styles.contentContainer}>
-      <Text style={styles.modalTitle}>Create account!</Text>
-      <Text style={styles.modalText}>Enter your credentials to continue</Text>
-      <TextInput
-        style={styles.input}
-        placeholderTextColor="lightgrey"
-        placeholder="Name"
-        value={name}
-        onChangeText={(text) => setName(text)}
-      />
-      <TextInput
-        style={styles.inputPas}
-        placeholderTextColor="lightgrey"
-        placeholder="Email"
-        value={email}
-        onChangeText={(text) => setEmail(text)}
-      />
-      <TextInput
-        style={styles.inputPas}
-        placeholderTextColor="lightgrey"
-        placeholder="Location"
-        value={userLocation}
-        onChangeText={(text) => setUserLocation(text)}
-      />
-      <View style={styles.inputPas}>
-        <TextInput
-          style={styles.inputText}
-          placeholderTextColor="lightgrey"
-          placeholder="Password"
-          value={password}
-          onChangeText={(text) => setPassword(text)}
-          secureTextEntry={lock}
-        />
-        {lock ? (
-          <EyeSlashIcon
-            onPress={() => setLock(false)}
-            size="27"
-            strokeWidth={2}
-            color="white"
-            style={{ marginRight: 12 }}
-          />
-        ) : (
-          <EyeIcon
-            onPress={() => setLock(true)}
-            size="27"
-            strokeWidth={2}
-            color="white"
-            style={{ marginRight: 12 }}
-          />
-        )}
-      </View>
-      <View style={styles.inputPas}>
-        <TextInput
-          style={styles.inputText}
-          placeholderTextColor="lightgrey"
-          placeholder="Confirm password"
-          value={confirmPassword}
-          onChangeText={(text) => setConfirmPassword(text)}
-          secureTextEntry={lock}
-        />
-      </View>
-      <Text style={styles.error}>{errors}</Text>
-      <TouchableOpacity
-        style={styles.signInBtn}
-        onPress={handleSubmit}
-        submitName="Login"
-        errors={errors}
-      >
-        <Text style={styles.btnText}>Register </Text>
-      </TouchableOpacity>
-      <Text
-        style={{
-          color: "white",
-          textAlign: "center",
-          fontSize: 14,
-          marginTop: -16,
-        }}
-      >
-        or
-      </Text>
-      <TouchableOpacity style={styles.googleBtn}>
-        {/* <Image source={google} style={styles.googleIcon} /> */}
-        <Text style={styles.btnGoogleText}>Continue with Google</Text>
-      </TouchableOpacity>
-    </View>
+  const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
+    (state) => state.modal
   );
-}
 
+  React.useEffect(() => {
+    if (regModalOpen) {
+      ref.current?.present();
+    }
+    if (!regModalOpen) {
+      ref.current?.dismiss();
+    }
+  }, [regModalOpen, sigModalOpen]);
+
+  return (
+    <BottomSheetModal
+      backgroundStyle={{
+        backgroundColor: "#3E3E3E",
+      }}
+      ref={ref}
+      index={1}
+      snapPoints={regSnapPoints}
+      style={styles.signUpModal}
+      backdropComponent={({ style }) => (
+        <View style={[style, { backgroundColor: "rgba(0, 0, 0, 0.7)" }]} />
+      )}
+    >
+      <View style={styles.contentContainer}>
+        <Text style={styles.modalTitle}>Create account!</Text>
+        <Text style={styles.modalText}>Enter your credentials to continue</Text>
+        <TextInput
+          style={styles.input}
+          placeholderTextColor="lightgrey"
+          placeholder="Name"
+          value={name}
+          onChangeText={(text) => setName(text)}
+        />
+        <TextInput
+          style={styles.inputPas}
+          placeholderTextColor="lightgrey"
+          placeholder="Email"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+        />
+        <TextInput
+          style={styles.inputPas}
+          placeholderTextColor="lightgrey"
+          placeholder="Location"
+          value={userLocation}
+          onChangeText={(text) => setUserLocation(text)}
+        />
+        <View style={styles.inputPas}>
+          <TextInput
+            style={styles.inputText}
+            placeholderTextColor="lightgrey"
+            placeholder="Password"
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+            secureTextEntry={lock}
+          />
+          {lock ? (
+            <EyeSlashIcon
+              onPress={() => setLock(false)}
+              size="27"
+              strokeWidth={2}
+              color="white"
+              style={{ marginRight: 12 }}
+            />
+          ) : (
+            <EyeIcon
+              onPress={() => setLock(true)}
+              size="27"
+              strokeWidth={2}
+              color="white"
+              style={{ marginRight: 12 }}
+            />
+          )}
+        </View>
+        <View style={styles.inputPas}>
+          <TextInput
+            style={styles.inputText}
+            placeholderTextColor="lightgrey"
+            placeholder="Confirm password"
+            value={confirmPassword}
+            onChangeText={(text) => setConfirmPassword(text)}
+            secureTextEntry={lock}
+          />
+        </View>
+        <Text style={styles.error}>{errors}</Text>
+        <TouchableOpacity
+          style={styles.signInBtn}
+          onPress={handleSubmit}
+          submitName="Login"
+          errors={errors}
+        >
+          <Text style={styles.btnText}>Register </Text>
+        </TouchableOpacity>
+        <Text
+          style={{
+            color: "white",
+            textAlign: "center",
+            fontSize: 14,
+            marginTop: -16,
+          }}
+        >
+          or
+        </Text>
+        <TouchableOpacity style={styles.googleBtn}>
+          {/* <Image source={google} style={styles.googleIcon} /> */}
+          <Text style={styles.btnGoogleText}>Continue with Google</Text>
+        </TouchableOpacity>
+      </View>
+    </BottomSheetModal>
+  );
+});
 const styles = StyleSheet.create({
   container: {
     justifyContent: "center",
     backgroundColor: "black",
+    zIndex: 99,
+    position: "absolute",
   },
   error: {
     color: "red",
@@ -374,3 +418,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+export default RegisterForm;

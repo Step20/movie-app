@@ -1,4 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import {
   View,
   Text,
@@ -12,17 +18,23 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import useGetUser from "@/hooks/useGetUser";
-import ProfileDisplay from "../components/profile/acc";
-import NoProfile from "../components/profile/noprofile";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { RootState } from "@/app/store";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import {
+  BottomSheetModal,
+  BottomSheetModalProvider,
+} from "@gorhom/bottom-sheet";
+import useGetUser from "@/hooks/useGetUser";
+import NoProfile from "../components/profile/noprofile";
 import { AuthState } from "@/features/auth/authSlice";
 import { useQuery } from "@apollo/client";
 import GET_USER from "@/utils/apollo/queries/GET_USER";
-import Loading from "@/components/loading";
 import ToggleLoading from "@/components/toggleLoading";
 
-export default function ProfileScreen() {
+export default function BookScreen() {
   const { credentials } = useSelector(
     (state: { auth: AuthState }) => state.auth
   );
@@ -41,17 +53,23 @@ export default function ProfileScreen() {
   }
 
   if (error)
-    return <NoProfile error={error} text={"Sign in to view profile"} />;
+    return <NoProfile error={error} text={"Sign in to view bookmarks"} />;
 
   const user = userData?.getUser;
-
   return (
     <View>
       {user ? (
-        <ProfileDisplay user={user} />
+        <View
+          style={{ backgroundColor: "#171717" }}
+          className="h-full justify-center"
+        >
+          <Text>Bookmark</Text>
+        </View>
       ) : (
-        <NoProfile error={error} text={"Sign in to view profile"} />
+        <NoProfile error={error} text={"Sign in to view bookmarks"} />
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({});

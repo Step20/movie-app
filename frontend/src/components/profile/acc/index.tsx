@@ -51,12 +51,7 @@ export default function ProfileDisplay({ user }: Props) {
         className="h-full"
       >
         <View>
-          <Image
-            source={{
-              uri: "../../../../assets/images/profile.jpg",
-            }}
-            style={{ width, height: height * 0.41 }}
-          />
+          <Image source={profile} style={{ width, height: height * 0.41 }} />
 
           <LinearGradient
             colors={[
@@ -97,6 +92,7 @@ export default function ProfileDisplay({ user }: Props) {
             </Text>
           </View>
         </View>
+
         {/* <View style={styles.featuredGroup}>
           <Text className="text-white font-bold text-lg mb-3">
             Featured Movie

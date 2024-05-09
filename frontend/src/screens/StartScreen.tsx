@@ -40,6 +40,7 @@ import {
   registerSuccess,
 } from "../features/auth/authSlice";
 import { toggleLoading } from "../features/loading/loadingSlice";
+import { regOpenModal, sigOpenModal } from "../features/modal/modalSlice";
 import validateLogin from "../utils/validation/login";
 import Credentials from "../../../types/Credentials";
 import RegisterForm from "../components/regForm/registerForm";
@@ -63,7 +64,7 @@ export default function StartScreen() {
     : useMemo(() => ["25%", "74%"], []);
   const regSnapPoints = ios
     ? useMemo(() => ["25%", "72%"], [])
-    : useMemo(() => ["25%", "86%"], []);
+    : useMemo(() => ["25%", "92%"], []);
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
     setEmail("");
@@ -73,7 +74,14 @@ export default function StartScreen() {
     setLock(true);
     regBottomSheetModalRef.current?.present();
   }, []);
-  const handleSheetChanges = useCallback((index: number) => {}, []);
+  const [index, setIndex] = useState();
+  const handleSheetChanges = useCallback((index: number) => {
+    // if (index == -1) {
+    //   dispatch(openModal());
+    // }
+
+    setIndex(index);
+  }, []);
 
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
@@ -114,12 +122,7 @@ export default function StartScreen() {
     try {
       const validation = await validateLogin({ email, password });
       if (validation.isError) {
-        setErrors(
-          validation.errors.map((error: string) => {
-            console.log(error);
-            return { field: error.split(" ")[0], statement: error };
-          })
-        );
+        setErrors(validation.errors);
         return;
       }
       const variables = { data: { email, password } };
@@ -134,160 +137,162 @@ export default function StartScreen() {
     dispatch(logoutSuccess());
   };
 
+  const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
+    (state) => state.modal
+  );
+
+  React.useEffect(() => {
+    if (regModalOpen) {
+      regBottomSheetModalRef.current?.present();
+      dispatch(regOpenModal());
+      regBottomSheetModalRef.current?.dismiss();
+    }
+    if (!regModalOpen) {
+      regBottomSheetModalRef.current?.dismiss();
+    }
+    if (sigModalOpen) {
+      bottomSheetModalRef.current?.present();
+      dispatch(sigOpenModal());
+    }
+    if (!sigModalOpen) {
+      bottomSheetModalRef.current?.dismiss();
+    }
+  }, [regModalOpen, sigModalOpen]);
+
   if (loading) {
     return <ToggleLoading />;
   }
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <View style={styles.container}>
-          <ImageBackground
-            source={image}
-            resizeMode="cover"
-            style={styles.image}
+    <View style={styles.container}>
+      <ImageBackground source={image} resizeMode="cover" style={styles.image}>
+        <View style={styles.content} className={bottomMargin}>
+          <Text style={styles.logo}> LOGO</Text>
+          <Text style={styles.text}>
+            It is a long established fact that an read able will be distracted.
+          </Text>
+
+          <TouchableOpacity onPress={handleWatch} style={styles.watchBtn}>
+            <Text style={styles.btnText}>Watch Free Now</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => dispatch(sigOpenModal(index))}
+            style={styles.signUpBtn}
           >
-            <View style={styles.content} className={bottomMargin}>
-              <Text style={styles.logo}> LOGO</Text>
-              <Text style={styles.text}>
-                It is a long established fact that an read able will be
-                distracted.
-              </Text>
-
-              <TouchableOpacity onPress={handleWatch} style={styles.watchBtn}>
-                <Text style={styles.btnText}>Watch Free Now</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handlePresentModalPress}
-                style={styles.signUpBtn}
-              >
-                <Text style={styles.btnText}>Sign In</Text>
-              </TouchableOpacity>
-              <Text style={styles.acc}>
-                Don't have an account?{" "}
-                <Text style={styles.link} onPress={regHandlePresentModalPress}>
-                  Register
-                </Text>
-              </Text>
-              <Text style={styles.under} className={bottomMargin}>
-                By creating an account or signing in, you agree to our
-                <Text style={styles.bold}> Terms of Service</Text> and
-                <Text style={styles.bold}> Privacy Policy</Text>
-              </Text>
-            </View>
-            <BottomSheetModal
-              ref={bottomSheetModalRef}
-              backgroundStyle={{
-                backgroundColor: "#3E3E3E",
-              }}
-              index={1}
-              snapPoints={snapPoints}
-              onChange={handleSheetChanges}
-              style={styles.signUpModal}
-              backdropComponent={({ style }) => (
-                <View
-                  style={[style, { backgroundColor: "rgba(0, 0, 0, 0.7)" }]}
-                />
-              )}
+            <Text style={styles.btnText}>Sign In</Text>
+          </TouchableOpacity>
+          <Text style={styles.acc}>
+            Don't have an account?{" "}
+            <Text
+              style={styles.link}
+              onPress={() => dispatch(regOpenModal(index))}
             >
-              <View style={styles.contentContainer}>
-                <Text style={styles.modalTitle}>Welcome back!</Text>
-                <Text style={styles.modalText}>
-                  Enter your email and password
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholderTextColor="lightgrey"
-                  placeholder="Email"
-                  value={email}
-                  onChangeText={(text) => setEmail(text)}
-                />
-                <View style={styles.inputPas}>
-                  <TextInput
-                    style={styles.inputText}
-                    placeholderTextColor="lightgrey"
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={(text) => setPassword(text)}
-                    secureTextEntry={lock}
-                  />
-                  {lock ? (
-                    <EyeSlashIcon
-                      onPress={() => setLock(false)}
-                      size="27"
-                      strokeWidth={2}
-                      color="white"
-                      style={{ marginRight: 12 }}
-                    />
-                  ) : (
-                    <EyeIcon
-                      onPress={() => setLock(true)}
-                      size="27"
-                      strokeWidth={2}
-                      color="white"
-                      style={{ marginRight: 12 }}
-                    />
-                  )}
-                </View>
-                <Text style={styles.error}>{errors}</Text>
-                <TouchableOpacity
-                  style={styles.signInBtn}
-                  onPress={handleSubmit}
-                  submitName="Login"
-                  errors={errors}
-                >
-                  <Text style={styles.btnText}>Sign In </Text>
-                </TouchableOpacity>
-                <Text
-                  style={{
-                    color: "white",
-                    textAlign: "center",
-                    fontSize: 14,
-                    marginTop: -16,
-                  }}
-                >
-                  or
-                </Text>
-                <TouchableOpacity style={styles.googleBtn}>
-                  <Text style={styles.btnGoogleText}>
-                    {/* <Image source={google} style={styles.googleIcon} /> */}
-                    <Text>Continue with Google</Text>
-                  </Text>
-                </TouchableOpacity>
-                <Text style={[styles.acc, { marginTop: -0 }]}>
-                  Don't have an account?{" "}
-                  <Text
-                    style={styles.link}
-                    onPress={regHandlePresentModalPress}
-                  >
-                    Register
-                  </Text>
-                </Text>
-                <Text style={styles.forgot}>Forgot your password?</Text>
-              </View>
-            </BottomSheetModal>
-
-            <BottomSheetModal
-              ref={regBottomSheetModalRef}
-              backgroundStyle={{
-                backgroundColor: "#3E3E3E",
-              }}
-              index={1}
-              snapPoints={regSnapPoints}
-              onChange={handleSheetChanges}
-              style={styles.signUpModal}
-              backdropComponent={({ style }) => (
-                <View
-                  style={[style, { backgroundColor: "rgba(0, 0, 0, 0.7)" }]}
-                />
-              )}
-            >
-              <RegisterForm />
-            </BottomSheetModal>
-          </ImageBackground>
+              Register
+            </Text>
+          </Text>
+          <Text style={styles.under} className={bottomMargin}>
+            By creating an account or signing in, you agree to our
+            <Text style={styles.bold}> Terms of Service</Text> and
+            <Text style={styles.bold}> Privacy Policy</Text>
+          </Text>
         </View>
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+        <BottomSheetModal
+          ref={bottomSheetModalRef}
+          backgroundStyle={{
+            backgroundColor: "#3E3E3E",
+          }}
+          index={1}
+          snapPoints={snapPoints}
+          onChange={handleSheetChanges}
+          style={styles.signUpModal}
+          backdropComponent={({ style }) => (
+            <View style={[style, { backgroundColor: "rgba(0, 0, 0, 0.7)" }]} />
+          )}
+        >
+          <View style={styles.contentContainer}>
+            <Text style={styles.modalTitle}>Welcome back!</Text>
+            <Text style={styles.modalText}>Enter your email and password</Text>
+            <TextInput
+              style={styles.input}
+              placeholderTextColor="lightgrey"
+              placeholder="Email"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+            />
+            <View style={styles.inputPas}>
+              <TextInput
+                style={styles.inputText}
+                placeholderTextColor="lightgrey"
+                placeholder="Password"
+                value={password}
+                onChangeText={(text) => setPassword(text)}
+                secureTextEntry={lock}
+              />
+              {lock ? (
+                <EyeSlashIcon
+                  onPress={() => setLock(false)}
+                  size="27"
+                  strokeWidth={2}
+                  color="white"
+                  style={{ marginRight: 12 }}
+                />
+              ) : (
+                <EyeIcon
+                  onPress={() => setLock(true)}
+                  size="27"
+                  strokeWidth={2}
+                  color="white"
+                  style={{ marginRight: 12 }}
+                />
+              )}
+            </View>
+            {/* <View>
+                  {errors.map((error, index) => (
+                    <Text key={index} style={styles.error}>
+                      {error.statement}
+                    </Text>
+                  ))}
+                </View> */}
+            <Text style={styles.error}>{errors}</Text>
+            <TouchableOpacity
+              style={styles.signInBtn}
+              onPress={handleSubmit}
+              submitName="Login"
+              errors={errors}
+            >
+              <Text style={styles.btnText}>Sign In </Text>
+            </TouchableOpacity>
+            <Text
+              style={{
+                color: "white",
+                textAlign: "center",
+                fontSize: 14,
+                marginTop: -16,
+              }}
+            >
+              or
+            </Text>
+            <TouchableOpacity style={styles.googleBtn}>
+              <Text style={styles.btnGoogleText}>
+                {/* <Image source={google} style={styles.googleIcon} /> */}
+                <Text>Continue with Google</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.acc, { marginTop: -0 }]}>
+              Don't have an account?{" "}
+              <Text style={styles.link} onPress={regHandlePresentModalPress}>
+                Register
+              </Text>
+            </Text>
+            <Text style={styles.forgot}>Forgot your password?</Text>
+          </View>
+        </BottomSheetModal>
+
+        <View>
+          <RegisterForm ref={regBottomSheetModalRef} />
+        </View>
+      </ImageBackground>
+    </View>
   );
 }
 
@@ -453,7 +458,7 @@ const styles = StyleSheet.create({
     width: "110%",
     alignItems: "center",
     justifyContent: "center",
-    height: 60,
+    height: 55,
     borderRadius: 30,
     backgroundColor: "#2C2C2C",
   },
@@ -461,7 +466,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "110%",
-    height: 60,
+    height: 55,
     margin: 9,
     marginTop: 25,
     borderRadius: 30,
