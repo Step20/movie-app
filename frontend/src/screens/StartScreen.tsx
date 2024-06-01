@@ -29,7 +29,11 @@ import image from "../../assets/images/start.png";
 import google from "../../assets/images/google_icon.png";
 import { EyeIcon, EyeSlashIcon } from "react-native-heroicons/solid";
 import { FloatingTitleTextInputField } from "../components/input/FloatingTitleTextInputField";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  useNavigation,
+  useRoute,
+  StackActions,
+} from "@react-navigation/native";
 
 import { useMutation } from "@apollo/client";
 import LOGIN_MUTATION from "../utils/apollo/mutations/LOGIN_MUTATION";
@@ -47,6 +51,9 @@ import RegisterForm from "../components/regForm/registerForm";
 import ToggleLoading from "../components/toggleLoading";
 import { RootState } from "@/app/store";
 import { useSelector } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
+import { useBottomSheetModal } from "@gorhom/bottom-sheet";
+import { Portal } from "react-native-portalize";
 
 type ContextValues = {
   setCredentials: React.Dispatch<Credentials>;
@@ -60,8 +67,8 @@ export default function StartScreen() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const regBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = ios
-    ? useMemo(() => ["25%", "66%"], [])
-    : useMemo(() => ["25%", "74%"], []);
+    ? useMemo(() => ["66%"], [])
+    : useMemo(() => ["74%"], []);
   const regSnapPoints = ios
     ? useMemo(() => ["25%", "72%"], [])
     : useMemo(() => ["25%", "92%"], []);
@@ -74,6 +81,9 @@ export default function StartScreen() {
     setLock(true);
     regBottomSheetModalRef.current?.present();
   }, []);
+  const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
+    (state) => state.modal
+  );
   const [index, setIndex] = useState();
   const handleSheetChanges = useCallback((index: number) => {
     // if (index == -1) {
@@ -81,6 +91,7 @@ export default function StartScreen() {
     // }
 
     setIndex(index);
+    console.log("SS:", index);
   }, []);
 
   const navigation = useNavigation();
@@ -95,13 +106,16 @@ export default function StartScreen() {
     useState<ErrorsType>([]);
   const [login, { data, loading, error }] = useMutation(LOGIN_MUTATION);
   const dispatch = useDispatch();
+  const { dismiss, dismissAll } = useBottomSheetModal();
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
 
   useEffect(() => {
     if (data) {
       const credentials = data.login;
       const { success, formError } = data.login;
       if (success) {
-        navigation.push("TabScreen");
+        bottomSheetModalRef.current?.dismiss();
+        navigation.navigate("TabScreen");
         setEmail("");
         setPassword("");
       }
@@ -133,19 +147,20 @@ export default function StartScreen() {
   };
 
   const handleWatch = async () => {
-    navigation.push("TabScreen");
+    navigation.navigate("TabScreen");
     dispatch(logoutSuccess());
   };
 
-  const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
-    (state) => state.modal
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => bottomSheetModalRef.current?.dismiss();
+    }, [])
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (regModalOpen) {
       regBottomSheetModalRef.current?.present();
       dispatch(regOpenModal());
-      regBottomSheetModalRef.current?.dismiss();
     }
     if (!regModalOpen) {
       regBottomSheetModalRef.current?.dismiss();
@@ -176,17 +191,14 @@ export default function StartScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => dispatch(sigOpenModal(index))}
+            onPress={() => dispatch(sigOpenModal())}
             style={styles.signUpBtn}
           >
             <Text style={styles.btnText}>Sign In</Text>
           </TouchableOpacity>
           <Text style={styles.acc}>
             Don't have an account?{" "}
-            <Text
-              style={styles.link}
-              onPress={() => dispatch(regOpenModal(index))}
-            >
+            <Text style={styles.link} onPress={() => dispatch(regOpenModal())}>
               Register
             </Text>
           </Text>
@@ -196,12 +208,14 @@ export default function StartScreen() {
             <Text style={styles.bold}> Privacy Policy</Text>
           </Text>
         </View>
+
         <BottomSheetModal
           ref={bottomSheetModalRef}
           backgroundStyle={{
             backgroundColor: "#3E3E3E",
           }}
-          index={1}
+          name={"sign"}
+          enableDismissOnClose={true}
           snapPoints={snapPoints}
           onChange={handleSheetChanges}
           style={styles.signUpModal}
@@ -256,7 +270,14 @@ export default function StartScreen() {
             <Text style={styles.error}>{errors}</Text>
             <TouchableOpacity
               style={styles.signInBtn}
-              onPress={handleSubmit}
+              onPress={() => {
+                dismissAll();
+                setTimeout(() => {
+                  handleSubmit();
+                }, 300);
+
+                // navigation.navigate("TabScreen");
+              }}
               submitName="Login"
               errors={errors}
             >

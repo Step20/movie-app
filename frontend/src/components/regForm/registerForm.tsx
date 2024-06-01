@@ -83,7 +83,7 @@ const RegisterForm = forwardRef<Ref>((props, ref) => {
       if (credentials) dispatch(registerSuccess(credentials));
 
       if (success) {
-        navigation.navigate("Home");
+        navigation.navigate("TabScreen");
       }
       if (formError) {
         setErrors([formError]);
@@ -116,18 +116,18 @@ const RegisterForm = forwardRef<Ref>((props, ref) => {
     return <ToggleLoading />;
   }
 
-  const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
-    (state) => state.modal
-  );
+  // const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
+  //   (state) => state.modal
+  // );
 
-  React.useEffect(() => {
-    if (regModalOpen) {
-      ref.current?.present();
-    }
-    if (!regModalOpen) {
-      ref.current?.dismiss();
-    }
-  }, [regModalOpen, sigModalOpen]);
+  // React.useEffect(() => {
+  //   if (regModalOpen) {
+  //     ref.current?.present();
+  //   }
+  //   if (!regModalOpen) {
+  //     ref.current?.dismiss();
+  //   }
+  // }, [regModalOpen, sigModalOpen]);
 
   return (
     <BottomSheetModal

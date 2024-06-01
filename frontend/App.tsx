@@ -10,6 +10,7 @@ import {
   BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 
 export default function App() {
   return (

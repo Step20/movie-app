@@ -42,12 +42,10 @@ var { width, height } = Dimensions.get("window");
 export default function HomeScreen() {
   const video = React.useRef(null);
   const dispatch = useDispatch();
-  const userId = credentials?.user?._id;
-  const user = userData?.getUser;
-
   const { credentials } = useSelector(
     (state: { auth: AuthState }) => state.auth
   );
+  const userId = credentials?.user?._id;
 
   const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
     (state) => state.modal
@@ -61,8 +59,7 @@ export default function HomeScreen() {
     variables: { userId },
   });
 
-  console.log(error);
-  console.log(user);
+  //console.log(error);
 
   useEffect(() => {
     // Load video when component mounts
@@ -84,7 +81,7 @@ export default function HomeScreen() {
   }
 
   // if (error) console.log(error);
-
+  const user = userData?.getUser;
   return (
     <View>
       <ScrollView
