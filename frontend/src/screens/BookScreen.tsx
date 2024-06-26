@@ -33,6 +33,7 @@ import { AuthState } from "@/features/auth/authSlice";
 import { useQuery } from "@apollo/client";
 import GET_USER from "@/utils/apollo/queries/GET_USER";
 import ToggleLoading from "@/components/toggleLoading";
+import BookList from "@/components/bookList/BookList.tsx";
 
 export default function BookScreen() {
   const { credentials } = useSelector(
@@ -59,12 +60,7 @@ export default function BookScreen() {
   return (
     <View>
       {user ? (
-        <View
-          style={{ backgroundColor: "#171717" }}
-          className="h-full justify-center"
-        >
-          <Text>Bookmark</Text>
-        </View>
+        <BookList />
       ) : (
         <NoProfile error={error} text={"Sign in to view bookmarks"} />
       )}

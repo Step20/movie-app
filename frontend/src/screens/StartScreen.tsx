@@ -146,10 +146,16 @@ export default function StartScreen() {
     }
   };
 
-  const handleWatch = async () => {
-    navigation.navigate("TabScreen");
+  const handleWatch = () => {
     dispatch(logoutSuccess());
+    navigation.navigate("TabScreen");
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => bottomSheetModalRef.current?.dismiss();
+    }, [])
+  );
 
   useFocusEffect(
     React.useCallback(() => {

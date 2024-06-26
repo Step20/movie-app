@@ -34,6 +34,8 @@ import { RootState } from "@/app/store";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { regOpenModal, sigOpenModal } from "@/features/modal/modalSlice";
+import { MOVIE_DATA } from "@/shared/movies.js";
+import MovieList from "@/components/movieList/MovieList";
 
 const ios = Platform.OS == "ios";
 const topMargin = ios ? "" : " mt-3";
@@ -50,7 +52,7 @@ export default function HomeScreen() {
   const { regModalOpen, sigModalOpen }: any = useSelector<RootState>(
     (state) => state.modal
   );
-
+  const navigation = useNavigation();
   const {
     loading,
     error,
@@ -106,7 +108,7 @@ export default function HomeScreen() {
             shouldPlay
             isLooping
             style={styles.backgroundVideo}
-            style={{ width, height: height * 0.75 }}
+            style={{ width, height: height * 0.715 }}
           />
           <LinearGradient
             colors={[
@@ -114,17 +116,20 @@ export default function HomeScreen() {
               "rgba(23, 23, 23, 0.8)",
               "rgba(23, 23, 23, 1)",
             ]}
-            style={{ width, height: height * 0.4 }}
+            style={{ width, height: height * 0.25 }}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
-            className="absolute bottom-0"
+            className="absolute bottom-0 z-1"
           />
           <View className="absolute w-full">
             <SafeAreaView className={ios ? "-mb-2" : "mb-3"}>
               <StatusBar style="light" />
-              <View className="flex-row justify-between items-center mx-5 mt-4">
+              <View
+                className="flex-row justify-between items-center  "
+                style={{ marginHorizontal: 16, marginTop: 12 }}
+              >
                 <TouchableOpacity
-                  onPress={() => navigation.push("Search")}
+                  onPress={() => navigation.navigate("Search")}
                   style={styles.searchIcon}
                 >
                   <MagnifyingGlassIcon
@@ -133,22 +138,28 @@ export default function HomeScreen() {
                     color="white"
                   />
                 </TouchableOpacity>
-                {user ? (
-                  <TouchableOpacity onPress={() => navigation.push("Profile")}>
-                    <Image
-                      source={require("../../assets/images/profile.jpg")}
-                      className="rounded-s"
-                      style={styles.iconImg}
-                    />
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.watchBtn}
-                    onPress={() => dispatch(sigOpenModal())}
-                  >
-                    <Text style={styles.btnText}>Sign In</Text>
-                  </TouchableOpacity>
-                )}
+                <View style={{ zIndex: 99 }}>
+                  {user ? (
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate("Profile")}
+                    >
+                      <Image
+                        source={require("../../assets/images/profile.jpg")}
+                        className="rounded-s"
+                        style={styles.iconImg}
+                      />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.watchBtn}
+                      onPress={() => {
+                        dispatch(sigOpenModal());
+                      }}
+                    >
+                      <Text style={styles.btnText}>Sign In</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             </SafeAreaView>
           </View>
@@ -157,28 +168,34 @@ export default function HomeScreen() {
             className="absolute z-20 text-center w-full h-full flex-1 justify-center align-center items-center px-5 "
           >
             <Text style={styles.homeTitle}>Blade Runner 2049</Text>
-            <View className="flex-row">
+            <View className="flex-row gap-3 ">
               <TouchableOpacity
                 className="flex-row"
                 style={[styles.homePlay, styles.homeBtn]}
-                onPress={() => navigation.push("Movie")}
+                onPress={() => navigation.navigate("MovieScreen")}
               >
-                <PlayIcon size="15" color="white" />
-                <Text style={styles.homeBtnText}>Play</Text>
+                <PlayIcon size="15" color="white" strokeWidth={2} />
+                <Text style={styles.homeBtnText}>Play Now</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 className="flex-row"
                 style={[styles.homeWatch, styles.homeBtn]}
               >
-                <PlusIcon size="15" color="white" />
-                <Text style={styles.homeBtnText}>Watch Later</Text>
+                <PlusIcon
+                  size="15"
+                  color="white"
+                  strokeWidth={2}
+                  strokeWidth={3}
+                />
+                <Text style={styles.homeBtnText}>Add to List</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        <View className="pb-12 space-y-4">
+        <MovieList title="Top Movies" />
+        {/* <View className="pb-12 space-y-4" style={{ marginTop: -4 }}>
           <View className="mx-4 flex-row justify-between items-center">
             <Text className="text-white text-xl font-bold">Top Movies</Text>
           </View>
@@ -188,100 +205,25 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 15 }}
           >
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
+            {MOVIE_DATA.map((movie, i) => (
+              <TouchableWithoutFeedback
+                key={i}
+                onPress={() => navigation.navigate("MovieScreen")}
+              >
+                <View className="space-y-2 mr-4">
+                  <Image
+                    source={require("../../assets/images/moviePoster2.png")}
+                    className="rounded-xl"
+                    style={{ width: width * 0.38, height: height * 0.25 }}
+                  />
+                  <Text className="text-neutral-300 ml-1">
+                    {movie.movieTitle}
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+            ))}
           </ScrollView>
-        </View>
-        <View className="pb-12 space-y-4">
-          <View className="mx-4 flex-row justify-between items-center">
-            <Text className="text-white text-xl font-bold">Top Movies</Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 15 }}
-          >
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback>
-              <View className="space-y-1 mr-4">
-                <Image
-                  source={require("../../assets/images/moviePoster2.png")}
-                  className="rounded-3xl"
-                  style={{ width: width * 0.4, height: height * 0.22 }}
-                />
-                <Text className="text-neutral-300 ml-1">Movie Title</Text>
-              </View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );
@@ -297,8 +239,8 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     backgroundColor: "rgba(255, 255, 255, 0.3)",
-    width: width * 0.118,
-    height: width * 0.118,
+    width: width * 0.11,
+    height: width * 0.11,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 100,
@@ -323,6 +265,7 @@ const styles = StyleSheet.create({
     fontSize: 38,
     fontWeight: "600",
     textAlign: "center",
+    marginBottom: 10,
   },
   homeBtn: {
     width: width * 0.35,
@@ -331,7 +274,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 30,
-    margin: 10,
   },
   homePlay: {
     backgroundColor: "#197AEC",
@@ -345,7 +287,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   homeMid: {
-    marginTop: height * 0.13,
+    marginTop: height * 0.07,
   },
   backgroundVideo: {
     height: height,

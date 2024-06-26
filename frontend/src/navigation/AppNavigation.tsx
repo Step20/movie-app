@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import StartScreen from "../screens/StartScreen";
 import HomeScreen from "../screens/HomeScreen";
 import BookScreen from "../screens/BookScreen";
+import MovieScreen from "../screens/MovieScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
@@ -105,6 +106,11 @@ export default function AppNavigation() {
           options={{ headerShown: false }}
           name="TabScreen"
           component={TabScreen}
+        />
+        <Stack.Screen
+          options={{ headerShown: false }}
+          name="MovieScreen"
+          component={MovieScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,4 +1,4 @@
-import Movie from "../../../../models/Movie";
+import { MovieModel } from "../../../../models/Movie";
 
 type Args = {
   userId: string;
@@ -18,7 +18,7 @@ const createContent = async ({ userId, movieTitle }: Args) => {
     tags: [],
   };
 
-  const newContent = await Movie.create({ ...variables });
+  const newContent = await MovieModel.create({ ...variables });
 
   await newContent.save();
   return newContent;
